@@ -4,7 +4,7 @@
   "description": "decentralized cli based chat",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "brittle test/*.js",
     "fix": "standard --fix"
   },
   "keywords": [
@@ -15,9 +15,14 @@
   "author": "rafapaezbas",
   "license": "ISC",
   "dependencies": {
-    "neo-blessed": "^0.2.0"
+    "corestore": "^6.0.1-alpha.9",
+    "hyperbee": "^1.7.0",
+    "hyperswarm": "^3.0.1",
+    "neo-blessed": "^0.2.0",
+    "sodium-native": "^3.3.0"
   },
   "devDependencies": {
+    "brittle": "^2.0.3",
     "standard": "^16.0.4"
   }
 }
