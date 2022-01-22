@@ -1,0 +1,23 @@
+{
+  "name": "zch",
+  "version": "1.0.0",
+  "description": "decentralized cli based chat",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "fix": "standard --fix"
+  },
+  "keywords": [
+    "chat",
+    "anonymous",
+    "hypercore"
+  ],
+  "author": "rafapaezbas",
+  "license": "ISC",
+  "dependencies": {
+    "neo-blessed": "^0.2.0"
+  },
+  "devDependencies": {
+    "standard": "^16.0.4"
+  }
+}
