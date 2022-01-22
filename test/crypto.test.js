@@ -25,9 +25,9 @@ test('negative/positive depth derives the same', async ({ is }) => {
 
 test('Keypair generation works with/without seed', async ({ is, not }) => {
   const keyPair1 = crypto.keyPair()
-  const seed = Buffer.allocUnsafe(32)
-  const keyPair2 = crypto.keyPair(seed)
+  const seed = Buffer.allocUnsafe(32).toString()
+  const keyPair2 = crypto.keyPair(Buffer.from(seed))
   not(keyPair1.seed && keyPair1.pk && keyPair1.sk, undefined)
   not(keyPair2.seed && keyPair2.pk && keyPair2.sk, undefined)
-  is(seed.toString(), keyPair2.seed.toString())
+  is(seed, keyPair2.seed.toString())
 })
