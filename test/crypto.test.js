@@ -1,33 +1,26 @@
 const test = require('brittle')
 const crypto = require('../lib/crypto')
 
-test('should derive new id', async ({ not }) => {
-  const id = crypto.id()
-  const address1 = id.address
-  const address2 = crypto.derive(id, 0).address
-  not(address1.toString(), address2.toString())
+test('generates master key', async ({ is, not }) => {
+  const masterkey = crypto.generateMasterkey()
+  not(masterkey, undefined)
+  is(masterkey.length, 32)
 })
 
-test('address and chainCode are 32 bytes', async ({ is, not }) => {
-  const id = crypto.id()
-  const derivated = crypto.derive(id, 1000)
-  is(derivated.address.length, 32)
-  is(derivated.chainCode.length, 32)
-  not(derivated.address.toString(), derivated.chainCode.toString())
+test('generates subkeys', async ({ is, not }) => {
+  const key = crypto.generateMasterkey()
+  const subkey = crypto.deriveSubkey(key, 0)
+  const subkey1 = crypto.deriveSubkey(key, 1)
+  not(subkey.toString(), subkey1.toString())
 })
 
-test('negative/positive depth derives the same', async ({ is }) => {
-  const id = crypto.id()
-  const address1 = crypto.derive(id, -5).address
-  const address2 = crypto.derive(id, 5).address
-  is(address1.toString(), address2.toString())
-})
-
-test('Keypair generation works with/without seed', async ({ is, not }) => {
-  const keyPair1 = crypto.keyPair()
-  const seed = Buffer.allocUnsafe(32).toString()
-  const keyPair2 = crypto.keyPair(Buffer.from(seed))
-  not(keyPair1.seed && keyPair1.pk && keyPair1.sk, undefined)
-  not(keyPair2.seed && keyPair2.pk && keyPair2.sk, undefined)
-  is(seed, keyPair2.seed.toString())
+test('encrypt/decrypt message with master key', async ({ is, not }) => {
+  const message = 'Hello world!'
+  const key = crypto.generateMasterkey()
+  const ciphertext = crypto.encrypt(Buffer.from(message), key)
+  const plaintext = crypto.decrypt(ciphertext, key)
+  not(ciphertext, undefined)
+  not(plaintext, undefined)
+  is(ciphertext.length, message.length + 16) // sodium.crypto_secretbox_MACBYTES
+  is(plaintext.toString(), message)
 })
