@@ -10,7 +10,7 @@ gui.appendChatMessage(Date.now(), 'userA', 'Etiam laoreet quam sed arcu.  ')
 gui.appendChatMessage(Date.now(), 'userB', 'Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus.  ')
 gui.appendChatMessage(Date.now(), 'userA', 'Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.  ')
 
-const run = async () => {
+const start = async () => {
   (await configuration.loadConfig()).contacts.filter(c => c.active).forEach(c => {
     gui.addContact(c.alias)
   })
@@ -25,4 +25,6 @@ const run = async () => {
   })
 }
 
-run()
+module.exports = {
+  start
+}
