@@ -44,6 +44,10 @@ It is important to notice that contactA and contactB cannot derive their keys to
 
 ## The interface
 
+
+![alt text](https://user-images.githubusercontent.com/15270736/150698695-8b773da1-f921-4dea-93ea-115dedaa4615.png)
+
+
 ZCH is a cli-tool based on [neo-blessed](https://github.com/embarklabs/neo-blessed/).  The textarea input works like any messaging app, but also as a command line. See:
 
 ``` bash:
@@ -51,4 +55,4 @@ ZCH is a cli-tool based on [neo-blessed](https://github.com/embarklabs/neo-bless
 \add-contact --alias foo --invitation 90bfc6c234e22425fb2a9614dcb751a46720d46df1914765562dc2c94218dfd263022f4a2ecc45f951255121e95563022dddf80ddbfe2f2d20640fbf72fb1b4f # adds a new contact and sends acknowledgement message. Now users can start exchanging messages.
 ``` 
 
-![alt text](https://user-images.githubusercontent.com/15270736/150698695-8b773da1-f921-4dea-93ea-115dedaa4615.png)
+
