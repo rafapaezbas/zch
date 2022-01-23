@@ -4,11 +4,11 @@ const configuration = require('./lib/config')
 
 // TODO remove lorem ipsum
 // TODO add date format
-gui.appendChatMessage(Date.now(), 'userA', 'In id erat non orci commodo lobortis.  ')
-gui.appendChatMessage(Date.now(), 'userB', 'Donec vitae dolor.  ')
-gui.appendChatMessage(Date.now(), 'userA', 'Etiam laoreet quam sed arcu.  ')
-gui.appendChatMessage(Date.now(), 'userB', 'Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus.  ')
-gui.appendChatMessage(Date.now(), 'userA', 'Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.  ')
+gui.appendChatMessage(new Date().toISOString(), 'userA', 'In id erat non orci commodo lobortis.  ')
+gui.appendChatMessage(new Date().toISOString(), 'userB', 'Donec vitae dolor.  ')
+gui.appendChatMessage(new Date().toISOString(), 'userA', 'Etiam laoreet quam sed arcu.  ')
+gui.appendChatMessage(new Date().toISOString(), 'userB', 'Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus.  ')
+gui.appendChatMessage(new Date().toISOString(), 'userA', 'Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.  ')
 
 const start = async () => {
   (await configuration.loadConfig()).contacts.filter(c => c.active).forEach(c => {
@@ -24,6 +24,8 @@ const start = async () => {
     }
   })
 }
+
+start()
 
 module.exports = {
   start
