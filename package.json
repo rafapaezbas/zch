@@ -19,7 +19,8 @@
     "hyperbee": "^1.7.0",
     "hyperswarm": "^3.0.1",
     "neo-blessed": "^0.2.0",
-    "sodium-native": "^3.3.0"
+    "sodium-native": "^3.3.0",
+    "subcommand": "^2.1.1"
   },
   "devDependencies": {
     "brittle": "^2.0.3",
