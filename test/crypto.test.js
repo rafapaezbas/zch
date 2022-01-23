@@ -7,11 +7,24 @@ test('generates master key', async ({ is, not }) => {
   is(masterkey.length, 32)
 })
 
-test('generates subkeys', async ({ is, not }) => {
+test('subkey 0 is the key itself', async ({ not }) => {
   const key = crypto.generateMasterkey()
-  const subkey = crypto.deriveSubkey(key, 0)
-  const subkey1 = crypto.deriveSubkey(key, 1)
-  not(subkey.toString(), subkey1.toString())
+  const subkey0 = crypto.deriveSubkey(key, [0])
+  const subkey1 = crypto.deriveSubkey(key, [1])
+  not(key.toString(), subkey0.toString())
+  not(subkey0.toString(), subkey1.toString())
+})
+
+test('can derive path', async ({ not }) => {
+  const key = crypto.generateMasterkey()
+  const subkey0 = crypto.deriveSubkey(key, [0])
+  const subkey00 = crypto.deriveSubkey(key, [0, 0])
+  const subkey1 = crypto.deriveSubkey(key, [1])
+  const subkey10 = crypto.deriveSubkey(key, [1, 0])
+  not(subkey0.toString(), subkey00.toString())
+  not(subkey1.toString(), subkey00.toString())
+  not(subkey1.toString(), subkey10.toString())
+  not(subkey00.toString(), subkey10.toString())
 })
 
 test('Keypair generation works with/without seed', async ({ is, not }) => {
