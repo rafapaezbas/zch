@@ -50,3 +50,5 @@ ZCH is a cli-tool based on [neo-blessed](https://github.com/embarklabs/neo-bless
 \add-contact --alias bar # generates a new contact, adds it to your list of contacts and prints the contact iformation that needs to be exchanged with the other party. (90bfc6c234e22425fb2a9614dcb751a46720d46df1914765562dc2c94218dfd263022f4a2ecc45f951255121e95563022dddf80ddbfe2f2d20640fbf72fb1b4f )
 \add-contact --alias foo --invitation 90bfc6c234e22425fb2a9614dcb751a46720d46df1914765562dc2c94218dfd263022f4a2ecc45f951255121e95563022dddf80ddbfe2f2d20640fbf72fb1b4f # adds a new contact and sends acknowledgement message. Now users can start exchanging messages.
 ``` 
+
+![alt text](http://url/to/img.png)
