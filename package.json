@@ -19,6 +19,8 @@
   "license": "ISC",
   "dependencies": {
     "@hyperswarm/dht": "^5.0.12",
+    "compact-encoding": "^2.5.1",
+    "compact-encoding-struct": "^1.2.0",
     "corestore": "^6.0.1-alpha.9",
     "hyperbee": "^1.7.0",
     "hyperswarm": "^3.0.1",
