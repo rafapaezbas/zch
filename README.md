@@ -56,3 +56,10 @@ ZCH is a cli-tool based on [neo-blessed](https://github.com/embarklabs/neo-bless
 ``` 
 
 
+### TODO
+
+- Create communication messages with relay
+- Add relay signature
+- Add signature of prev message
+- Add contacts info to memory
+- Add tor proxy

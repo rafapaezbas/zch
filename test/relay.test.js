@@ -1,29 +1,29 @@
 const test = require('brittle')
 const Relay = require('../lib/relay')
-const DHT = require('@hyperswarm/dht')
-const c = require('compact-encoding')
-const { handshake } = require('../lib/messages')
+const RelayClient = require('../lib/relay-client')
+const { types, messageTypeOffset } = require('../lib/messages')
 
-test('relay answers with handshake to connection', async ({ is, not, pass, plan, teardown }) => {
-  plan(2)
+test('relay answers with handshake to connection', async ({ is, plan, teardown }) => {
+  plan(4)
 
   const relay = new Relay()
-  await relay.init()
-  not(relay.keyPair, undefined)
-
-  const clientNode = new DHT()
-  const clientSocket = await clientNode.connect(relay.keyPair.publicKey)
-
-  clientSocket.on('data', (data) => {
-    const message = c.decode(handshake, data)
-    console.log(message)
-    pass()
-  })
+  const relayClient = new RelayClient(relay.keyPair.publicKey)
 
   teardown(async () => {
     await relay.server.close()
     await relay.node.destroy()
+    await relayClient.socket.destroy()
+    await relayClient.node.destroy()
     await relay.swarm.destroy()
-    await clientNode.destroy()
+  })
+
+  await relay.init()
+  await relayClient.init()
+
+  relayClient.on('data', data => {
+    is(data[messageTypeOffset], types.HANDSHAKE)
+    is(relayClient.handshake.pk.toString(), relay.signatureKeys.pk.toString())
+    is(relayClient.handshake.core.toString(), relay.core.key.toString())
+    is(relayClient.session.state.name, 'idle')
   })
 })
