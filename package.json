@@ -7,7 +7,7 @@
     "zch": "./bin/cmd.js"
   },
   "scripts": {
-    "test": "brittle test/*.js",
+    "test": "brittle test/*.test.js",
     "fix": "standard --fix"
   },
   "keywords": [
