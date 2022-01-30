@@ -63,3 +63,21 @@ test('creates same keypair from same masterkey', async ({ is, not }) => {
   is(pk1, pk2)
   is(sk1, sk2)
 })
+
+test('masterkey can generate keypair and sign keypair', async ({ not, is }) => {
+  const key = crypto.generateMasterkey()
+  const keyPair = crypto.keyPair(key)
+  const signKeyPair = crypto.signKeyPair(key)
+  not(keyPair.pk, undefined)
+  not(keyPair.sk, undefined)
+  not(signKeyPair.pk, undefined)
+  not(signKeyPair.sk, undefined)
+  is(signKeyPair.seed, keyPair.seed)
+})
+
+test('should create and verify signatures with generate key pair', async ({ ok }) => {
+  const signKeyPair = crypto.signKeyPair()
+  const message = 'Hello world'
+  const signature = crypto.sign(Buffer.from(message), signKeyPair.sk)
+  ok(crypto.verify(signature, Buffer.from(message), signKeyPair.pk))
+})
