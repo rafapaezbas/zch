@@ -1,26 +1,24 @@
 const gui = require('./lib/gui')
 const command = require('./lib/command')
 const configuration = require('./lib/config')
-
-// TODO remove lorem ipsum
-// TODO add date format
-gui.appendChatMessage(new Date().toISOString(), 'userA', 'In id erat non orci commodo lobortis.  ')
-gui.appendChatMessage(new Date().toISOString(), 'userB', 'Donec vitae dolor.  ')
-gui.appendChatMessage(new Date().toISOString(), 'userA', 'Etiam laoreet quam sed arcu.  ')
-gui.appendChatMessage(new Date().toISOString(), 'userB', 'Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus.  ')
-gui.appendChatMessage(new Date().toISOString(), 'userA', 'Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.  ')
+const RelayClient = require('./lib/relay-client')
 
 const start = async () => {
   (await configuration.loadConfig()).contacts.filter(c => c.active).forEach(c => {
     gui.addContact(c.alias)
   })
 
-  gui.textarea.on('submit', (data) => {
+  // TODO generate relayClient from contacts list
+  const key = Buffer.from('314fe5479f48fb1da8900f33da72b74d7a9eb6611669039e31d93864b7b5a9ea', 'hex')
+  const client = new RelayClient(key)
+  await client.init()
+
+  gui.textarea.on('submit', async (data) => {
     const isCommand = data[0] === '\\'
     if (isCommand) {
       command(data.substring(1).split(' '))
     } else {
-      // sendMessageToRelay
+      await client.send(data)
     }
   })
 }

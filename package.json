@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "brittle": "^2.0.3",
+    "random-access-memory": "^4.0.0",
     "standard": "^16.0.4"
   }
 }
