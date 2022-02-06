@@ -5,12 +5,14 @@ const RelayClient = require('../lib/relay-client')
 const { types, messageTypeOffset, query, ack } = require('../lib/messages')
 const c = require('compact-encoding')
 const ram = require('random-access-memory')
+const Corestore = require('corestore')
 
 test('relay answers with handshake to connection', async ({ is, plan, teardown }) => {
   plan(4)
 
+  const store = new Corestore(ram)
   const relay = new Relay({ storage: ram })
-  const relayClient = new RelayClient(relay.keyPair.publicKey)
+  const relayClient = new RelayClient(relay.keyPair.publicKey, store)
 
   teardown(async () => {
     await relay.server.close()
@@ -18,6 +20,7 @@ test('relay answers with handshake to connection', async ({ is, plan, teardown }
     await relayClient.socket.destroy()
     await relayClient.node.destroy()
     await relay.swarm.destroy()
+    await relayClient.swarm.destroy()
   })
 
   await relay.init()
@@ -34,8 +37,9 @@ test('relay answers with handshake to connection', async ({ is, plan, teardown }
 test('relay client can send message', async ({ is, not, plan, ok, teardown }) => {
   plan(7)
 
+  const store = new Corestore(ram)
   const relay = new Relay({ storage: ram })
-  const relayClient = new RelayClient(relay.keyPair.publicKey)
+  const relayClient = new RelayClient(relay.keyPair.publicKey, store)
   const message = Buffer.allocUnsafe(32).toString()
   const address = Buffer.allocUnsafe(32).toString()
 
@@ -45,6 +49,7 @@ test('relay client can send message', async ({ is, not, plan, ok, teardown }) =>
     await relayClient.socket.destroy()
     await relayClient.node.destroy()
     await relay.swarm.destroy()
+    await relayClient.swarm.destroy()
   })
 
   await relay.init()
@@ -67,8 +72,9 @@ test('relay client can send message', async ({ is, not, plan, ok, teardown }) =>
 test('relay returns ack for well-formed message', async ({ is, not, plan, ok, teardown }) => {
   plan(3)
 
+  const store = new Corestore(ram)
   const relay = new Relay({ storage: ram })
-  const relayClient = new RelayClient(relay.keyPair.publicKey)
+  const relayClient = new RelayClient(relay.keyPair.publicKey, store)
   const message = Buffer.allocUnsafe(32).toString()
   const address = Buffer.allocUnsafe(32).toString()
 
@@ -78,6 +84,7 @@ test('relay returns ack for well-formed message', async ({ is, not, plan, ok, te
     await relayClient.socket.destroy()
     await relayClient.node.destroy()
     await relay.swarm.destroy()
+    await relayClient.swarm.destroy()
   })
 
   await relay.init()
@@ -91,4 +98,33 @@ test('relay returns ack for well-formed message', async ({ is, not, plan, ok, te
     not(ack_.signature, undefined)
     is(relayClient.session.state.name, 'idle')
   })
+})
+
+test('Query is persisted', async ({ is, not, plan, ok, teardown }) => {
+  plan(1)
+
+  const store = new Corestore(ram)
+  const relay = new Relay({ storage: ram })
+  const relayClient = new RelayClient(relay.keyPair.publicKey, store)
+  const message = Buffer.allocUnsafe(32).toString()
+  const address = Buffer.allocUnsafe(32).toString()
+
+  teardown(async () => {
+    await relay.server.close()
+    await relay.node.destroy()
+    await relayClient.socket.destroy()
+    await relayClient.node.destroy()
+    await relay.swarm.destroy()
+    await relayClient.swarm.destroy()
+  })
+
+  await relay.init()
+  await relayClient.init()
+  await once(relayClient, 'data') // handshake
+  await relayClient.send(address, message)
+  await once(relay, 'data') // message received by relay
+  await once(relayClient, 'data') // acknowledge received
+  const persistedQueryRelay = await relay.db.get(address)
+  const persistedQueryClient = await relayClient.db.get(address)
+  not(persistedQueryRelay, null)
 })
