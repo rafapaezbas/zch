@@ -1,6 +1,6 @@
 # ZCH
 
-Decentralized anonymous messaging app, does not require registration. ~~F*ck Whatsapp.~~
+Decentralized messaging app, does not require registration.
 
 **Work in progress.**
 
