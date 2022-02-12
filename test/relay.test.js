@@ -101,13 +101,13 @@ test('relay returns ack for well-formed message', async ({ is, not, plan, ok, te
 })
 
 test('Query is persisted', async ({ is, not, plan, ok, teardown }) => {
-  plan(1)
+  plan(3)
 
   const store = new Corestore(ram)
   const relay = new Relay({ storage: ram })
   const relayClient = new RelayClient(relay.keyPair.publicKey, store)
-  const message = Buffer.allocUnsafe(32).toString()
-  const address = Buffer.allocUnsafe(32).toString()
+  const message = Buffer.allocUnsafe(32)
+  const address = Buffer.allocUnsafe(32)
 
   teardown(async () => {
     await relay.server.close()
@@ -124,7 +124,10 @@ test('Query is persisted', async ({ is, not, plan, ok, teardown }) => {
   await relayClient.send(address, message)
   await once(relay, 'data') // message received by relay
   await once(relayClient, 'data') // acknowledge received
-  const persistedQueryRelay = await relay.db.get(address)
-  const persistedQueryClient = await relayClient.db.get(address)
+  const persistedQueryRelay = await relay.db.get(Buffer.from(address))
+  // const persistedQueryClient = await relayClient.db.get(address)
+
   not(persistedQueryRelay, null)
+  is(persistedQueryRelay.key.toString(), address.toString())
+  is(persistedQueryRelay.value.toString(), message.toString())
 })
