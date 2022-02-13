@@ -4,7 +4,7 @@ const crypto = require('../lib/crypto')
 
 test('generates new contact from masterkey', async ({ is, not }) => {
   const masterkey = crypto.generateMasterkey()
-  const { address, keyPair, signKeyPair } = contact.contact(masterkey, 0)
+  const { address, keyPair, signKeyPair } = await contact.contact(masterkey, 0)
   is(address.toString(), crypto.deriveSubkey(masterkey, [0]).toString())
   is(keyPair.seed.toString(), crypto.deriveSubkey(masterkey, [1]).toString())
   is(signKeyPair.seed.toString(), crypto.deriveSubkey(masterkey, [1]).toString())
@@ -15,8 +15,8 @@ test('generates new contact from masterkey', async ({ is, not }) => {
 
 test('invitation does not contain any secret key', async ({ is, not }) => {
   const masterkey = crypto.generateMasterkey()
-  const newContact = contact.contact(masterkey, 0)
-  const invitation = contact.invitation(newContact)
+  const newContact = await contact.contact(masterkey, 0)
+  const invitation = await contact.invitation(newContact)
   not(invitation.indexOf(newContact.keyPair.pk.toString('hex')), -1)
   not(invitation.indexOf(newContact.signKeyPair.pk.toString('hex')), -1)
   is(invitation.indexOf(newContact.keyPair.sk.toString('hex')), -1)
@@ -25,8 +25,8 @@ test('invitation does not contain any secret key', async ({ is, not }) => {
 
 test('transforms contact to data structure', async ({ is, not }) => {
   const masterkey = crypto.generateMasterkey()
-  const newContact = contact.contact(masterkey, 0)
-  const invitation = contact.invitation(newContact)
+  const newContact = await contact.contact(masterkey, 0)
+  const invitation = await contact.invitation(newContact)
   const invitationStruct = contact.invitationTransform(invitation)
   not(invitationStruct.rootAddress, undefined)
   not(invitationStruct.pk, undefined)
