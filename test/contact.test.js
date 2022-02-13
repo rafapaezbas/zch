@@ -22,3 +22,17 @@ test('invitation does not contain any secret key', async ({ is, not }) => {
   is(invitation.indexOf(newContact.keyPair.sk.toString('hex')), -1)
   is(invitation.indexOf(newContact.signKeyPair.sk.toString('hex')), -1)
 })
+
+test('transforms contact to data structure', async ({ is, not }) => {
+  const masterkey = crypto.generateMasterkey()
+  const newContact = contact.contact(masterkey, 0)
+  const invitation = contact.invitation(newContact)
+  const invitationStruct = contact.invitationTransform(invitation)
+  not(invitationStruct.rootAddress, undefined)
+  not(invitationStruct.pk, undefined)
+  not(invitationStruct.signPk, undefined)
+  is(invitationStruct.rootAddress.length, 32)
+  is(invitationStruct.pk.length, 32)
+  is(invitationStruct.signPk.length, 32)
+  not(invitationStruct.signPk, invitationStruct.pk)
+})
