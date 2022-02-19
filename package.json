@@ -26,6 +26,7 @@
     "hyperswarm": "^3.0.1",
     "neo-blessed": "^0.2.0",
     "protocol-state-machine": "file:../protocol-state-machine",
+    "simple-config": "file:../simple-config",
     "sodium-native": "^3.3.0",
     "subcommand": "^2.1.1"
   },

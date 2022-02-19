@@ -74,8 +74,3 @@ const getMessages = async (relayClient, invitation) => {
 }
 
 start()
-
-module.exports = {
-  start,
-  getRelayClient
-}
