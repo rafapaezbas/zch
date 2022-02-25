@@ -8,6 +8,7 @@ const Corestore = require('corestore')
 const ram = require('random-access-memory') // TODO remove
 const gui = require('./lib/gui')
 const c = require('compact-encoding')
+const loadDB = require('./lib/db')
 
 const store = new Corestore(ram)
 const relayClients = new Map()
@@ -18,12 +19,13 @@ console.log = gui.appendLogMessage //TODO debug only
 const start = async () => {
   // Load configuration and render contacts
   const config = await loadConfig()
-  if ((await loadConfig()).contacts) {
-    (await loadConfig()).contacts.filter(c => c.active).forEach(c => {
+  const db = loadDB(config.dbStorage)
+  if (config.contacts) {
+    config.contacts.filter(c => c.active).forEach(c => {
       gui.addContact(c.alias)
     })
 
-    // Create relay clients for inboxes
+    // Create relay clients
     config.contacts.forEach(async c => {
       const initRelayClient = async (invitation) => {
         const { rootAddress, pk, signPk, relay } = invitationTransform(invitation)
@@ -39,7 +41,11 @@ const start = async () => {
       if (c.outbox) { // inbox is always there, but outbox might not be there yet
         const outbox = await initRelayClient(c.outbox)
         await outbox.ready()
-        // TODO levelDB messages messages.get(c.alias).out =
+        const range = (key) => ({ gt: key, lt: key + '~' })
+        console.log("searching messages...")
+        for await (message of db.createReadStream(range(c.alias))){
+          messages.get(c.alias).out.push({ timestamp:message.key.toString().split('!')[1] , payload: message.value }) // TODO add timestamp
+        }
       }
     })
   }
@@ -63,6 +69,8 @@ const start = async () => {
                       }
       relayClients.get(relay.toString('hex')).send(message)
       messages.get(currentContact.alias).out.push(message) // TODO store in levelDB and append to chat
+      await db.put(currentContact.alias + '!' + message.timestamp, data)
+      gui.appendChatMessage(new Date(parseInt(message.timestamp.toString())).toISOString(), 'user', data)
     }
   })
 }
@@ -101,8 +109,10 @@ gui.guiEmitter.on('contact-gui-update', async (contactIndex) => {
     const { keyPair } = await contact(masterkey, masterKeyIndex)
     return inbox.map(m => ({...m, payload: crypto.decrypt(m.payload, keyPair.pk, keyPair.sk)}))
   }
-  const decryptedInbox = await getDecryptedInbox(messages.get(alias).in)
-  gui.renderChat(alias, undefined, decryptedInbox)
+  const inbox = await getDecryptedInbox(messages.get(alias).in)
+  const outbox =  messages.get(alias).out // already decrypted
+  gui.renderChat(alias, outbox, inbox)
 })
 
 start()
+gui.logo()
