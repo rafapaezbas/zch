@@ -1,5 +1,5 @@
 const command = require('./lib/command')
-const { getConfig } = require('./lib/config')
+const { getConfig, setConfig } = require('./lib/config')
 const { invitationTransform, contact, subaddress } = require('./lib/contact')
 const { query } = require('./lib/messages')
 const crypto = require('./lib/crypto')
@@ -36,9 +36,14 @@ const start = async () => {
       getState().messages.get(c.alias).in = await getMessages(inbox, c.inbox)
       const { rootAddress } = invitationTransform(c.inbox)
       inbox.watch(rootAddress, getState().messages.get(c.alias).in.length, c.alias)
-      inbox.on('message', m => {
+      inbox.on('message',async m => { // TODO transform in relay-client static method
         if (m.alias === c.alias) {
-          getState().messages.get(c.alias).in.push(decode(query, m.value))
+          const decodedMessage = decode(query,m.value)
+          if(getState().messages.get(c.alias).in.length === 0 && !c.outbox){
+            c.outbox = decodedMessage.payload
+            await setConfig(config)
+          }
+          getState().messages.get(c.alias).in.push(decodedMessage)
           // TODO if checking different chat, add * to contact
         }
       })
@@ -62,7 +67,7 @@ const start = async () => {
     if (isCommand) {
       command(data.substring(1).split(' '))
     } else {
-      const currentContact = config.contacts[gui.getSelectedContactIndex()]
+      const currentContact = (await getConfig()).contacts[gui.getSelectedContactIndex()]
       const messagesNum = getState().messages.get(currentContact.alias).out.length
       const { rootAddress, pk, relay } = invitationTransform(currentContact.outbox)
       const { signKeyPair } = await contact(Buffer.from(config.masterkey, 'hex'), gui.getSelectedContactIndex())
