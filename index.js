@@ -36,10 +36,10 @@ const start = async () => {
       getState().messages.get(c.alias).in = await getMessages(inbox, c.inbox)
       const { rootAddress } = invitationTransform(c.inbox)
       inbox.watch(rootAddress, getState().messages.get(c.alias).in.length, c.alias)
-      inbox.on('message',async m => { // TODO transform in relay-client static method
+      inbox.on('message', async m => { // TODO transform in relay-client static method
         if (m.alias === c.alias) {
-          const decodedMessage = decode(query,m.value)
-          if(getState().messages.get(c.alias).in.length === 0 && !c.outbox){
+          const decodedMessage = decode(query, m.value)
+          if (getState().messages.get(c.alias).in.length === 0 && !c.outbox) {
             c.outbox = decodedMessage.payload
             await setConfig(config)
           }
