@@ -1,25 +1,20 @@
 const command = require('./lib/command')
-const { loadConfig, saveConfig } = require('./lib/config')
+const { getConfig } = require('./lib/config')
 const { invitationTransform, contact, subaddress } = require('./lib/contact')
 const { query } = require('./lib/messages')
 const crypto = require('./lib/crypto')
-const RelayClient = require('./lib/relay-client')
-const Corestore = require('corestore')
-const ram = require('random-access-memory') // TODO remove
 const gui = require('./lib/gui')
 const { decode } = require('compact-encoding')
-const loadDB = require('./lib/db')
-
-const store = new Corestore(ram)
-const relayClients = new Map()
-const messages = new Map()
+const { loadDB } = require('./lib/db')
+const { getState, getRelayClient } = require('./lib/state')
 
 console.log = gui.appendLogMessage // TODO debug only
 
 const start = async () => {
   // Load configuration and render contacts
-  const config = await loadConfig()
-  const db = loadDB(config.dbStorage)
+  const config = await getConfig()
+  const db = await loadDB()
+
   if (config.contacts) {
     config.contacts.filter(c => c.active).forEach(c => {
       gui.addContact(c.alias)
@@ -28,23 +23,23 @@ const start = async () => {
     // Create relay clients
     config.contacts.forEach(async c => {
       const initRelayClient = async (invitation) => {
-        const { rootAddress, pk, signPk, relay } = invitationTransform(invitation)
+        const { relay } = invitationTransform(invitation)
         const relayClient = getRelayClient(relay.toString('hex'))
         await relayClient.init()
         return relayClient
       }
-      messages.set(c.alias, { in: [], out: [] })
+      getState().messages.set(c.alias, { in: [], out: [] })
 
       // Get inbox messages
       const inbox = await initRelayClient(c.inbox)
       await inbox.ready()
-      messages.get(c.alias).in = await getMessages(inbox, c.inbox)
+      getState().messages.get(c.alias).in = await getMessages(inbox, c.inbox)
       const { rootAddress } = invitationTransform(c.inbox)
-      inbox.watch(rootAddress, messages.get(c.alias).in.length, c.alias)
+      inbox.watch(rootAddress, getState().messages.get(c.alias).in.length, c.alias)
       inbox.on('message', m => {
         if (m.alias === c.alias) {
-          messages.get(c.alias).in.push(decode(query, m.value))
-          //TODO if checking different chat, add * to contact
+          getState().messages.get(c.alias).in.push(decode(query, m.value))
+          // TODO if checking different chat, add * to contact
         }
       })
 
@@ -54,8 +49,8 @@ const start = async () => {
         await outbox.ready()
         const range = (key) => ({ gt: key, lt: key + '~' })
         console.log('searching messages...')
-        for await (message of db.createReadStream(range(c.alias))) {
-          messages.get(c.alias).out.push({ timestamp: message.key.toString().split('!')[1], payload: message.value })
+        for await (const message of db.createReadStream(range(c.alias))) {
+          getState().messages.get(c.alias).out.push({ timestamp: message.key.toString().split('!')[1], payload: message.value })
         }
       }
     })
@@ -68,8 +63,8 @@ const start = async () => {
       command(data.substring(1).split(' '))
     } else {
       const currentContact = config.contacts[gui.getSelectedContactIndex()]
-      const messagesNum = messages.get(currentContact.alias).out.length
-      const { rootAddress, pk, signPk, relay } = invitationTransform(currentContact.outbox)
+      const messagesNum = getState().messages.get(currentContact.alias).out.length
+      const { rootAddress, pk, relay } = invitationTransform(currentContact.outbox)
       const { signKeyPair } = await contact(Buffer.from(config.masterkey, 'hex'), gui.getSelectedContactIndex())
       const message = {
         timestamp: Buffer.from(Date.now().toString()),
@@ -79,19 +74,12 @@ const start = async () => {
         prev: undefined, // TODO add prev signature
         signSk: signKeyPair.sk
       }
-      relayClients.get(relay.toString('hex')).send(message)
-      messages.get(currentContact.alias).out.push(message)
+      getState().relayClients.get(relay.toString('hex')).send(message)
+      getState().messages.get(currentContact.alias).out.push(message)
       await db.put(currentContact.alias + '!' + message.timestamp, data)
       gui.appendChatMessage(new Date(parseInt(message.timestamp.toString())).toISOString(), 'user', data)
     }
   })
-}
-
-const getRelayClient = (relay) => {
-  if (relayClients.has(relay)) return relayClients.get(relay)
-  const relayClient = new RelayClient(Buffer.from(relay, 'hex'), store)
-  relayClients.set(relay, relayClient)
-  return relayClient
 }
 
 const getMessages = async (relayClient, invitation) => {
@@ -112,7 +100,7 @@ const getMessages = async (relayClient, invitation) => {
 }
 
 gui.guiEmitter.on('contact-gui-update', async (contactIndex) => {
-  const config = await loadConfig()
+  const config = await getConfig()
   const alias = config.contacts.filter(c => c.active)[contactIndex].alias
   const getDecryptedInbox = async (inbox) => {
     console.log(inbox.length)
@@ -121,8 +109,8 @@ gui.guiEmitter.on('contact-gui-update', async (contactIndex) => {
     const { keyPair } = await contact(masterkey, masterKeyIndex)
     return inbox.map(m => ({ ...m, payload: crypto.decrypt(m.payload, keyPair.pk, keyPair.sk) }))
   }
-  const inbox = await getDecryptedInbox(messages.get(alias).in)
-  const outbox = messages.get(alias).out // already decrypted
+  const inbox = await getDecryptedInbox(getState().messages.get(alias).in)
+  const outbox = getState().messages.get(alias).out // already decrypted
   gui.renderChat(alias, outbox, inbox)
 })
 
